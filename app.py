@@ -32,17 +32,17 @@ st.markdown("""
         border: 1px solid #334155;
         box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
     }
-    .premium-banner h1 { color: #FFFFFF !important; font-weight: 800 !important; font-size: 28px !important; margin: 0 0 6px 0 !important; letter-spacing: -0.5px; text-align: center !important; }
-    .premium-banner .banner-sub { color: #94A3B8 !important; font-size: 14px !important; margin: 0 0 20px 0 !important; font-weight: 400; text-align: center !important; }
+    .premium-banner h1 { color: #FFFFFF !important; font-weight: 800 !important; font-size: 28px !important; margin: 0 0 4px 0 !important; letter-spacing: -0.5px; }
+    .premium-banner p { color: #94A3B8 !important; font-size: 14px !important; margin: 0 0 20px 0 !important; font-weight: 400; }
     
     /* Neon Team Badge */
     .team-badge { background: linear-gradient(90deg, #38BDF8, #818CF8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 800; letter-spacing: 0.5px; }
     
     /* Roster Two-Line Layout Container Modules */
-    .roster-box { background: rgba(30, 41, 59, 0.5); padding: 16px 20px; border-radius: 10px; border: 1px solid #334155; max-width: 800px; margin: 0 auto; }
-    .roster-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: center; }
+    .roster-box { background: rgba(30, 41, 59, 0.5); padding: 16px 20px; border-radius: 10px; border: 1px solid #334155; }
+    .roster-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
     .roster-row:first-child { margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid rgba(51, 65, 85, 0.5); }
-    .roster-label { color: #94A3B8; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; }
+    .roster-label { color: #94A3B8; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; min-width: 140px; }
     
     /* Leader Gold Shield Badge */
     .badge-leader { background: linear-gradient(135deg, #FEF08A 0%, #EAB308 100%); color: #451A03 !important; font-weight: 700; padding: 4px 14px; border-radius: 6px; font-size: 13px; box-shadow: 0 2px 4px rgba(234, 179, 8, 0.2); }
@@ -59,11 +59,11 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# Render Centered Obsidian Executive Header Banner with Two-Line Roster
+# Render Styled Obsidian Executive Header Banner with Two-Line Roster
 st.markdown("""
     <div class="premium-banner">
         <h1>🤖 AI Operations & Supply Chain Knowledge Assistant</h1>
-        <div class="banner-sub">Engineered by Team: <span class="team-badge">AI-Catalysts- Hackathon</span></div>
+        <p>Engineered by Team: <span class="team-badge">AI-Catalysts- Hackathon</span> &nbsp;|&nbsp; Powered by Gemini 3.6 Flash & Local TF-IDF</p>
         <div class="roster-box">
             <div class="roster-row">
                 <span class="roster-label">👑 Project Leader:</span>
@@ -163,7 +163,6 @@ with col1:
                     for idx, chunk in enumerate(chunks):
                         if chunk.strip():
                             all_chunks.append(chunk)
-                            all_chunks.append(chunk)
                             all_sources.append(f"{uploaded_file.name} (Segment {idx+1})")
                 except Exception as e:
                     st.error(f"Error parsing {uploaded_file.name}: {e}")
@@ -198,3 +197,6 @@ with col2:
                 top_indices = np.argsort(similarities)[-3:][::-1]
                 
                 context_str = ""
+                matched_sources = []
+                for idx in top_indices:
+                    if similarities[idx] > 0.05:
