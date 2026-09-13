@@ -114,7 +114,7 @@ if st.session_state.keyword_frequencies:
 st.sidebar.markdown("---")
 st.sidebar.caption("🔒 Corporate guardrails are live. Anti-hallucination tracking activated.")
 
-# --- DECOUPLED FLATTENED RAG ROUTING CORE (PREVENTS INDENTATION ACCIDENTS) ---
+# --- DECOUPLED FLATTENED RAG ROUTING CORE ---
 def run_search_pipeline(query_text):
     if st.session_state.tfidf_matrix is None:
         st.error("Please upload and index documents on the left before running search queries.")
@@ -188,6 +188,7 @@ with col1:
                 try:
                     reader = PdfReader(uploaded_file)
                     file_text = ""
-                    for page_num, page in enumerate(reader.pages):
-                        text = page.extract_text()
-                        if text:
+                    for page in reader.pages:
+                        page_text = page.extract_text() or ""
+                        file_text += page_text + "\n"
+                    
