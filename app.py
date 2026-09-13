@@ -171,7 +171,6 @@ with col1:
                     st.error(f"Error parsing {uploaded_file.name}: {e}")
             
             if all_chunks:
-                # 💾 SYSTEM IMMUTABLE MEMORY PERSISTENCE SAVE
                 st.session_state.chunks = all_chunks
                 st.session_state.sources = all_sources
                 st.session_state.keyword_frequencies = extracted_freq_dict
@@ -189,11 +188,11 @@ with col2:
     user_query = st.text_input("Ask an operational or policy question:", placeholder="e.g., What is the maximum time cap for container clearance?")
     submit_query = st.button("🔍 Search Engine")
     
-    # 🕵️‍♂️ FIXED: SYSTEM TELEMETRY ALIGNMENT FEEDBACK
+    # 💎 FLATTENED FIXED TERNARY SYSTEM TELEMETRY DISPLAY MODULE
+    status_msg = f"📂 Deployed Memory Status: {len(st.session_state.chunks if st.session_state.chunks else [])} text chunks actively mapped into local matrix." if st.session_state.tfidf_matrix is not None else "📥 Deployed Memory Status: Awaiting PDF ingestion pipeline inputs from left column panel."
     if st.session_state.tfidf_matrix is not None:
-        st.info(f"📂 Deployed Memory Status: {len(st.session_state.chunks)} text chunks actively mapped into local matrix.")
+        st.info(status_msg)
     else:
-        st.warning("📥 Deployed Memory Status: Awaiting PDF ingestion pipeline inputs from left column panel.")
+        st.warning(status_msg)
 
     if submit_query and user_query:
-        if st.session_state.tfidf_matrix is None:
