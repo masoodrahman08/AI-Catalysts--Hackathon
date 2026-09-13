@@ -195,7 +195,7 @@ with col2:
     else:
         st.warning("📥 System status: Waiting for operational manuals to be uploaded on the left.")
 
+    # Airtight Flattened Validation Gates
     if submit_query and user_query:
         if st.session_state.tfidf_matrix is None:
             st.error("Please upload and index documents on the left before running search queries.")
-        elif not API_KEY_STRING:
