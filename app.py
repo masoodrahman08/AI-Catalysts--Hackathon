@@ -8,7 +8,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
 
-# 🔑 SECURE METADATA API ROUTING
+# 🔑 SECURE METADATA ENVIRONMENTAL ROUTING (FIXED)
 if "GEMINI_API_KEY" in st.secrets:
     API_KEY_STRING = st.secrets["GEMINI_API_KEY"]
 else:
@@ -16,12 +16,12 @@ else:
 
 # 1. Page Configuration & Setup
 st.set_page_config(
-    page_title="AI Operations Knowledge Assistant",
+    page_title="AI Operations & Supply Chain Knowledge Assistant",
     page_icon="🤖",
     layout="wide"
 )
 
-# --- LUXURY BRAND CSS INJECTION MATRIX (FORTUNE-500 ARCHITECTURE) ---
+# --- PREMIUM LUXURY BRAND CSS INJECTION MATRIX ---
 st.markdown("""
     <style>
     /* Global Page Structure and Typography */
@@ -189,13 +189,13 @@ with col2:
     user_query = st.text_input("Ask an operational or policy question:", placeholder="e.g., What is the maximum time cap for container clearance?")
     submit_query = st.button("🔍 Search Engine")
     
+    # Live Cache Monitor Check Indicator Module
+    if st.session_state.tfidf_matrix is not None:
+        st.info(f"📂 System status: {len(st.session_state.chunks)} matrix context nodes locked in memory.")
+    else:
+        st.warning("📥 System status: Waiting for operational manuals to be uploaded on the left.")
+
     if submit_query and user_query:
         if st.session_state.tfidf_matrix is None:
             st.error("Please upload and index documents on the left before running search queries.")
         else:
-            with st.spinner("Scanning indexes and compiling grounded response..."):
-                query_vec = st.session_state.vectorizer.transform([user_query])
-                similarities = cosine_similarity(query_vec, st.session_state.tfidf_matrix).flatten()
-                
-                top_indices = np.argsort(similarities)[-3:][::-1]
-                
