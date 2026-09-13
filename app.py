@@ -25,7 +25,7 @@ st.set_page_config(
 st.markdown("""
     <style>
     /* Global Page Padding Reset */
-    .main .block-container { padding-top: 2rem; padding-bottom: 2rem; }
+    .main .block-container { padding-top: 2rem; padding-bottom: 2rem; max-width: 96%; }
     
     /* Top Corporate Header Banner Layout */
     .header-banner {
@@ -33,8 +33,8 @@ st.markdown("""
         padding: 24px; border-radius: 10px; margin-bottom: 28px;
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
     }
-    .header-banner h1 { color: #FFFFFF !important; font-weight: 700 !important; font-size: 26px !important; margin: 0 0 6px 0 !important; }
-    .header-banner p { color: #E2E8F0 !important; font-size: 14px !important; margin: 0 0 12px 0 !important; opacity: 0.95; }
+    .header-banner h1 { color: #FFFFFF !important; font-weight: 700 !important; font-size: 26px !important; margin: 0 0 6px 0 !important; text-align: center !important; }
+    .header-banner p { color: #E2E8F0 !important; font-size: 14px !important; margin: 0 0 12px 0 !important; opacity: 0.95; text-align: center !important; }
     .team-badge { font-weight: bold; color: #63B3ED !important; }
     
     /* Section Headers Design Layout */
@@ -42,9 +42,9 @@ st.markdown("""
     
     /* Executive Roster Grid Styling */
     .roster-grid {
-        background: rgba(255, 255, 255, 0.1);
+        background: rgba(30, 41, 59, 0.5);
         border-radius: 6px; padding: 12px; font-size: 13px !important; color: #F7FAFC !important;
-        border-left: 4px solid #63B3ED;
+        border-left: 4px solid #63B3ED; max-width: 900px; margin: 0 auto; text-align: center !important;
     }
     .premium-response { background-color: #FFFFFF; border: 1px solid #E2E8F0; border-left: 5px solid #2563EB; border-radius: 8px; padding: 20px; margin-top: 14px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
     .premium-citation { background-color: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 6px; padding: 8px 14px; margin-top: 8px; font-size: 13px; color: #475569; }
@@ -93,17 +93,17 @@ if st.session_state.keyword_frequencies:
 st.sidebar.markdown("---")
 st.sidebar.caption("🔒 Corporate guardrails are live. Anti-hallucination tracking activated.")
 
-# --- DECOUPLED FLATTENED RAG ROUTING CORE (ELIMINATES INDENTATION TRAUGHTS) ---
-def run_search_pipeline(user_query):
-    if st.session_state.tfidf_matrix is None:
+# --- DECOUPLED FLATTENED RAG ROUTING CORE ---
+def run_search_pipeline(query_text):
+    if st.session_state.tfidf_matrix is None or len(st.session_state.chunks) == 0:
         st.error("Please upload and index documents on the left before running search queries.")
         return
     if not API_KEY_STRING:
         st.error("🔒 Security Error: `GEMINI_API_KEY` is completely missing from your Streamlit Secrets console.")
         return
         
-    with st.spinner("Scanning indexes and compiling grounded response..."):
-        query_vec = st.session_state.vectorizer.transform([user_query])
+    with st.spinner("Scanning matrix indexes and compiling response context..."):
+        query_vec = st.session_state.vectorizer.transform([query_text])
         similarities = cosine_similarity(query_vec, st.session_state.tfidf_matrix).flatten()
         top_indices = np.argsort(similarities)[-3:][::-1]
         
@@ -137,7 +137,7 @@ def run_search_pipeline(user_query):
         except Exception as e:
             st.error(f"Google Gemini Engine Exception: {e}")
 
-# 4. Graphical Layout Panels
+# 4. Graphical Layout Panels (ENFORCED RIGID SIDE-BY-SIDE MATRIX LAYOUT)
 col1, col2 = st.columns(2, gap="large")
 
 with col1:
@@ -145,7 +145,8 @@ with col1:
     uploaded_files = st.file_uploader(
         "Upload standard operational PDFs:",
         type=["pdf"],
-        accept_multiple_files=True
+        accept_multiple_files=True,
+        key="uploader_panel_widget"
     )
     
     process_btn = st.button("⚙️ Process & Index Documents")
@@ -166,7 +167,7 @@ with col1:
                 try:
                     reader = PdfReader(uploaded_file)
                     file_text = ""
-                    for page_num, page in enumerate(reader.pages):
+                    for page in reader.pages:
                         text = page.extract_text()
                         if text:
                             file_text += text + "\n"
@@ -199,6 +200,3 @@ with col1:
                 st.session_state.keyword_frequencies = extracted_freq_dict
                 
                 vectorizer = TfidfVectorizer(stop_words='english')
-                st.session_state.tfidf_matrix = vectorizer.fit_transform(all_chunks)
-                st.session_state.vectorizer = vectorizer
-                
