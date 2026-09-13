@@ -161,7 +161,7 @@ def parse_and_chunk_pdfs(uploaded_files):
             
     return all_chunks, all_sources, extracted_freq_dict
 
-# --- DECOUPLED FLATTENED RAG ROUTING CORE (FULLY ACCURATE & REVERIFIED) ---
+# --- DECOUPLED FLATTENED RAG ROUTING CORE (PROPERLY ALIGNED & CLOSED EXCEPTIONS) ---
 def run_search_pipeline(user_query):
     if st.session_state.tfidf_matrix is None or len(st.session_state.chunks) == 0:
         st.error("Please upload and index documents on the left before running search queries.")
