@@ -8,7 +8,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
 
-# 🔑 SECURE METADATA ENVIRONMENTAL ROUTING (FIXED)
+# 🔑 SECURE METADATA ENVIRONMENTAL ROUTING
 if "GEMINI_API_KEY" in st.secrets:
     API_KEY_STRING = st.secrets["GEMINI_API_KEY"]
 else:
@@ -198,4 +198,4 @@ with col2:
     if submit_query and user_query:
         if st.session_state.tfidf_matrix is None:
             st.error("Please upload and index documents on the left before running search queries.")
-        else:
+        elif not API_KEY_STRING:
