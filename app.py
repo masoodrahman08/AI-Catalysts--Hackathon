@@ -28,19 +28,30 @@ st.markdown("""
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
     }
     .header-banner h1 { color: #FFFFFF !important; font-weight: 700 !important; font-size: 26px !important; margin: 0 0 6px 0 !important; }
-    .header-banner p { color: #E2E8F0 !important; font-size: 14px !important; margin: 0 !important; opacity: 0.95; }
+    .header-banner p { color: #E2E8F0 !important; font-size: 14px !important; margin: 0 0 12px 0 !important; opacity: 0.95; }
     .team-badge { font-weight: bold; color: #63B3ED !important; }
     
     /* Section Headers Design Layout */
     h2 { color: #2C5282 !important; font-weight: 600 !important; font-size: 19px !important; border-bottom: 2px solid #EDF2F7; padding-bottom: 6px; margin-bottom: 16px; }
+    
+    /* Executive Roster Grid Styling */
+    .roster-grid {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 6px; padding: 12px; font-size: 13px !important; color: #F7FAFC !important;
+        border-left: 4px solid #63B3ED;
+    }
     </style>
 """, unsafe_allow_html=True)
 
-# Render the Executive Banner with your Team Identity Card
+# Render the Executive Banner with Team Name, Project Leader, and Member Roster
 st.markdown("""
     <div class="header-banner">
         <h1>🤖 AI Operations & Supply Chain Knowledge Assistant</h1>
         <p>Engineered by Team: <span class="team-badge">AI-Catalysts- Hackathon</span> | Powered by Gemini 3.6 Flash & Local TF-IDF</p>
+        <div class="roster-grid">
+            👑 <b>Project Leader:</b> Hafiz Masood Ur Rehman &nbsp;|&nbsp; 
+            👥 <b>Team Members:</b> Fatima Ijaz • Muhammad Aslam • Shakeel Ahmed • Sami Ur Rahman • Muhammad Haroon Jan
+        </div>
     </div>
 """, unsafe_allow_html=True)
 
