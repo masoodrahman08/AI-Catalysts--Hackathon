@@ -8,6 +8,12 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
 
+# 🔑 SECURE METADATA ENVIRONMENTAL ROUTING
+if "GEMINI_API_KEY" in st.secrets:
+    API_KEY_STRING = st.secrets["GEMINI_API_KEY"]
+else:
+    API_KEY_STRING = ""
+
 # 1. Page Configuration & Setup
 st.set_page_config(
     page_title="AI Operations & Supply Chain Knowledge Assistant",
@@ -40,6 +46,8 @@ st.markdown("""
         border-radius: 6px; padding: 12px; font-size: 13px !important; color: #F7FAFC !important;
         border-left: 4px solid #63B3ED;
     }
+    .premium-response { background-color: #FFFFFF; border: 1px solid #E2E8F0; border-left: 5px solid #2563EB; border-radius: 8px; padding: 20px; margin-top: 14px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); color: #000000 !important; }
+    .premium-citation { background-color: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 6px; padding: 8px 14px; margin-top: 8px; font-size: 13px; color: #475569; }
     </style>
 """, unsafe_allow_html=True)
 
@@ -185,20 +193,8 @@ with col2:
                 system_prompt = "You are an expert Operations and Supply Chain Knowledge Assistant.\nAnswer user questions accurately based ONLY on the operational text reference provided below.\nIf the answer cannot be confidently verified from the text, state exactly: \n'Information not found in the uploaded operational knowledge base.' Do not make up answers.\n\n--- START REFERENCE TEXT ---\n" + context_str + "\n--- END REFERENCE TEXT ---"
                 
                 try:
-                    # FETCHING NEW API KEY DYNAMICALLY FROM STREAMLIT HIDDEN METADATA VAULT
-                    client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
-                    
-                    config_setup = types.GenerateContentConfig(system_instruction=system_prompt, temperature=0.0)
-                    response = client.models.generate_content(model='gemini-3.6-flash', contents=user_query, config=config_setup)
-                    
-                    answer = response.text
-                    st.markdown("### Answer")
-                    st.write(answer)
-                    
-                    if "Information not found" not in answer and matched_sources:
-                        st.markdown("#### Grounded Reference Citations")
-                        for source in matched_sources:
-                            st.caption(f"📌 {source}")
-                            
-                except Exception as e:
-                    st.error(f"Google Gemini Engine Exception: {e}")
+                    if not API_KEY_STRING:
+                        st.error("🔒 Security Error: `GEMINI_API_KEY` is completely missing from your Streamlit Secrets vault console.")
+                    else:
+                        client = genai.Client(api_key=API_KEY_STRING)
+                        config_setup = types.GenerateContentConfig(system_instruction=system_prompt, temperature=0.0)
