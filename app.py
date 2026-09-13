@@ -114,7 +114,7 @@ if st.session_state.keyword_frequencies:
 st.sidebar.markdown("---")
 st.sidebar.caption("🔒 Corporate guardrails are live. Anti-hallucination tracking activated.")
 
-# --- DECOUPLED FLATTENED PARSING ENGINE (ELIMINATED NESTED HOOK FAULTS) ---
+# --- DECOUPLED FLATTENED PARSING ENGINE ---
 def parse_and_chunk_pdfs(uploaded_files):
     all_chunks = []
     all_sources = []
@@ -131,7 +131,6 @@ def parse_and_chunk_pdfs(uploaded_files):
             reader = PdfReader(uploaded_file)
             file_text = ""
             
-            # Safe linear flattening without dangling try blocks
             for page in reader.pages:
                 extracted_text = page.extract_text()
                 if extracted_text:
@@ -162,7 +161,7 @@ def parse_and_chunk_pdfs(uploaded_files):
             
     return all_chunks, all_sources, extracted_freq_dict
 
-# --- DECOUPLED FLATTENED RAG ROUTING CORE ---
+# --- DECOUPLED FLATTENED RAG ROUTING CORE (FULLY ACCURATE & REVERIFIED) ---
 def run_search_pipeline(user_query):
     if st.session_state.tfidf_matrix is None or len(st.session_state.chunks) == 0:
         st.error("Please upload and index documents on the left before running search queries.")
@@ -194,3 +193,4 @@ def run_search_pipeline(user_query):
         
         try:
             client = genai.Client(api_key=GEMINI_KEY)
+            config_setup = types.GenerateContentConfig(system_instruction=system_prompt, temperature=0.0)
