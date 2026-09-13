@@ -8,9 +8,6 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
 
-# 🔑 HARDCODED GOOGLE GEMINI API CREDENTIALS (SAFE FOR LIVE DEMOS)
-API_KEY = "AQ.Ab8RN6L4FnA8JitCtP2gIAF9O9MWQcVAXOe89dV37jYbBoHoRw"
-
 # 1. Page Configuration & Setup
 st.set_page_config(
     page_title="AI Operations & Supply Chain Knowledge Assistant",
@@ -177,9 +174,9 @@ with col2:
                 system_prompt = "You are an expert Operations and Supply Chain Knowledge Assistant.\nAnswer user questions accurately based ONLY on the operational text reference provided below.\nIf the answer cannot be confidently verified from the text, state exactly: \n'Information not found in the uploaded operational knowledge base.' Do not make up answers.\n\n--- START REFERENCE TEXT ---\n" + context_str + "\n--- END REFERENCE TEXT ---"
                 
                 try:
-                    client = genai.Client(api_key=API_KEY)
+                    # FETCHING NEW API KEY DYNAMICALLY FROM STREAMLIT HIDDEN METADATA VAULT
+                    client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
                     
-                    # FIXED: Configuration elements cleanly passed with closed arguments
                     config_setup = types.GenerateContentConfig(system_instruction=system_prompt, temperature=0.0)
                     response = client.models.generate_content(model='gemini-3.6-flash', contents=user_query, config=config_setup)
                     
