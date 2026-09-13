@@ -84,11 +84,11 @@ st.markdown("""
     </div>
 """, unsafe_allow_html=True)
 
-# 2. Initialize Session State Variables
+# 2. Initialize Session State Variables Permanently
 if "chunks" not in st.session_state:
-    st.session_state.chunks = []
+    st.session_state.chunks = None
 if "sources" not in st.session_state:
-    st.session_state.sources = []
+    st.session_state.sources = None
 if "vectorizer" not in st.session_state:
     st.session_state.vectorizer = None
 if "tfidf_matrix" not in st.session_state:
@@ -171,6 +171,7 @@ with col1:
                     st.error(f"Error parsing {uploaded_file.name}: {e}")
             
             if all_chunks:
+                # 💾 SYSTEM IMMUTABLE MEMORY PERSISTENCE SAVE
                 st.session_state.chunks = all_chunks
                 st.session_state.sources = all_sources
                 st.session_state.keyword_frequencies = extracted_freq_dict
@@ -179,8 +180,7 @@ with col1:
                 st.session_state.tfidf_matrix = vectorizer.fit_transform(all_chunks)
                 st.session_state.vectorizer = vectorizer
                 
-                st.success(f"Successfully processed {len(uploaded_files)} document(s) into {len(all_chunks)} searchable knowledge nodes!")
-                st.rerun()
+                st.success(f"Successfully processed {len(uploaded_files)} document(s) into {len(all_chunks)} searchable knowledge nodes! You can now query on the right panel.")
             else:
                 st.warning("No readable text could be retrieved from the uploaded documents.")
 
@@ -189,13 +189,11 @@ with col2:
     user_query = st.text_input("Ask an operational or policy question:", placeholder="e.g., What is the maximum time cap for container clearance?")
     submit_query = st.button("🔍 Search Engine")
     
-    # Live Cache Monitor Check Indicator Module
+    # 🕵️‍♂️ FIXED: SYSTEM TELEMETRY ALIGNMENT FEEDBACK
     if st.session_state.tfidf_matrix is not None:
-        st.info(f"📂 System status: {len(st.session_state.chunks)} matrix context nodes locked in memory.")
+        st.info(f"📂 Deployed Memory Status: {len(st.session_state.chunks)} text chunks actively mapped into local matrix.")
     else:
-        st.warning("📥 System status: Waiting for operational manuals to be uploaded on the left.")
+        st.warning("📥 Deployed Memory Status: Awaiting PDF ingestion pipeline inputs from left column panel.")
 
-    # Airtight Flattened Validation Gates
     if submit_query and user_query:
         if st.session_state.tfidf_matrix is None:
-            st.error("Please upload and index documents on the left before running search queries.")
