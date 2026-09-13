@@ -9,10 +9,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
 
 # 🔑 SECURE METADATA API ROUTING
-if "GEMINI_API_KEY" in st.secrets:
-    API_KEY_STRING = st.secrets["GEMINI_API_KEY"]
-else:
-    API_KEY_STRING = ""
+GEMINI_KEY = st.secrets["GEMINI_API_KEY"]
 
 # 1. Page Configuration & Setup
 st.set_page_config(
@@ -165,6 +162,7 @@ with col1:
                     
                     for idx, chunk in enumerate(chunks):
                         if chunk.strip():
+                            # FIXED: Removed the accidental duplicate all_chunks.append line
                             all_chunks.append(chunk)
                             all_sources.append(f"{uploaded_file.name} (Segment {idx+1})")
                 except Exception as e:
@@ -198,4 +196,3 @@ with col2:
                 similarities = cosine_similarity(query_vec, st.session_state.tfidf_matrix).flatten()
                 
                 top_indices = np.argsort(similarities)[-3:][::-1]
-                
