@@ -124,7 +124,7 @@ def run_search_pipeline(query_text):
         try:
             client = genai.Client(api_key=API_KEY_STRING)
             config_setup = types.GenerateContentConfig(system_instruction=system_prompt, temperature=0.0)
-            response = client.models.generate_content(model='gemini-3.6-flash', contents=user_query, config=config_setup)
+            response = client.models.generate_content(model='gemini-3.6-flash', contents=query_text, config=config_setup)
             
             st.markdown("### 📝 Grounded Response")
             st.markdown(f'<div class="premium-response">{response.text}</div>', unsafe_allow_html=True)
@@ -140,63 +140,61 @@ def run_search_pipeline(query_text):
 # 4. Graphical Layout Panels (ENFORCED RIGID SIDE-BY-SIDE MATRIX LAYOUT)
 col1, col2 = st.columns(2, gap="large")
 
+# 🔒 SOLID LAYOUT CONTAINER 1 (Ingestion Base)
 with col1:
-    st.header("📄 Upload Knowledge Documents")
-    uploaded_files = st.file_uploader(
-        "Upload standard operational PDFs:",
-        type=["pdf"],
-        accept_multiple_files=True,
-        key="uploader_panel_widget"
-    )
-    
-    process_btn = st.button("⚙️ Process & Index Documents")
+    with st.container():
+        st.header("📄 Upload Knowledge Documents")
+        uploaded_files = st.file_uploader(
+            "Upload standard operational PDFs:",
+            type=["pdf"],
+            accept_multiple_files=True,
+            key="uploader_panel_widget"
+        )
+        
+        process_btn = st.button("⚙️ Process & Index Documents")
 
-    if process_btn and uploaded_files:
-        all_chunks = []
-        all_sources = []
-        extracted_freq_dict = {}
-        
-        STOP_WORDS = set([
-            "the", "and", "a", "of", "to", "in", "is", "for", "that", "by", "on", "with", 
-            "as", "an", "at", "be", "this", "from", "it", "are", "or", "was", "will", "shall",
-            "must", "should", "under", "within", "strict", "exact", "any", "all", "each", "based"
-        ])
-        
-        with st.spinner("Parsing operational files & analyzing key focus terms..."):
-            for uploaded_file in uploaded_files:
-                try:
-                    reader = PdfReader(uploaded_file)
-                    file_text = ""
-                    for page in reader.pages:
-                        text = page.extract_text()
-                        if text:
-                            file_text += text + "\n"
-                    
-                    lower_text = file_text.lower()
-                    cleaned_text = "".join([c if c.isalnum() or c.isspace() else " " for c in lower_text])
-                    
-                    filtered_words = []
-                    for word in cleaned_text.split():
-                        if word not in STOP_WORDS and len(word) > 2 and not word.isdigit():
-                            filtered_words.append(word)
-                    
-                    word_counts = collections.Counter(filtered_words)
-                    extracted_freq_dict[uploaded_file.name] = word_counts.most_common(12)
-                    
-                    chunk_size = 500
-                    words = file_text.split()
-                    chunks = [" ".join(words[i:i+chunk_size]) for i in range(0, len(words), chunk_size)]
-                    
-                    for idx, chunk in enumerate(chunks):
-                        if chunk.strip():
-                            all_chunks.append(chunk)
-                            all_sources.append(f"{uploaded_file.name} (Segment {idx+1})")
-                except Exception as e:
-                    st.error(f"Error parsing {uploaded_file.name}: {e}")
+        if process_btn and uploaded_files:
+            all_chunks = []
+            all_sources = []
+            extracted_freq_dict = {}
             
-            if all_chunks:
-                st.session_state.chunks = all_chunks
-                st.session_state.sources = all_sources
-                st.session_state.keyword_frequencies = extracted_freq_dict
+            STOP_WORDS = set([
+                "the", "and", "a", "of", "to", "in", "is", "for", "that", "by", "on", "with", 
+                "as", "an", "at", "be", "this", "from", "it", "are", "or", "was", "will", "shall",
+                "must", "should", "under", "within", "strict", "exact", "any", "all", "each", "based"
+            ])
+            
+            with st.spinner("Parsing operational files & analyzing key focus terms..."):
+                for uploaded_file in uploaded_files:
+                    try:
+                        reader = PdfReader(uploaded_file)
+                        file_text = ""
+                        for page in reader.pages:
+                            text = page.extract_text()
+                            if text:
+                                file_text += text + "\n"
+                        
+                        lower_text = file_text.lower()
+                        cleaned_text = "".join([c if c.isalnum() or c.isspace() else " " for c in lower_text])
+                        
+                        filtered_words = []
+                        for word in cleaned_text.split():
+                            if word not in STOP_WORDS and len(word) > 2 and not word.isdigit():
+                                filtered_words.append(word)
+                        
+                        word_counts = collections.Counter(filtered_words)
+                        extracted_freq_dict[uploaded_file.name] = word_counts.most_common(12)
+                        
+                        chunk_size = 500
+                        words = file_text.split()
+                        chunks = [" ".join(words[i:i+chunk_size]) for i in range(0, len(words), chunk_size)]
+                        
+                        for idx, chunk in enumerate(chunks):
+                            if chunk.strip():
+                                all_chunks.append(chunk)
+                                all_sources.append(f"{uploaded_file.name} (Segment {idx+1})")
+                    except Exception as e:
+                        st.error(f"Error parsing {uploaded_file.name}: {e}")
                 
-                vectorizer = TfidfVectorizer(stop_words='english')
+                if all_chunks:
+                    st.session_state.chunks = all_chunks
