@@ -8,7 +8,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
 
-# 🔑 SECURE METADATA API ROUTING
+# 🔑 SECURE METADATA ENVIRONMENTAL ROUTING (PURGED FROM PUBLIC REP LEAKS)
 if "GEMINI_API_KEY" in st.secrets:
     API_KEY_STRING = st.secrets["GEMINI_API_KEY"]
 else:
@@ -196,6 +196,4 @@ with col2:
             with st.spinner("Scanning indexes and compiling grounded response..."):
                 query_vec = st.session_state.vectorizer.transform([user_query])
                 similarities = cosine_similarity(query_vec, st.session_state.tfidf_matrix).flatten()
-                
-                top_indices = np.argsort(similarities)[-3:][::-1]
                 
