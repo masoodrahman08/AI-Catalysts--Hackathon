@@ -114,6 +114,51 @@ if st.session_state.keyword_frequencies:
 st.sidebar.markdown("---")
 st.sidebar.caption("🔒 Corporate guardrails are live. Anti-hallucination tracking activated.")
 
+# --- DECOUPLED FLATTENED RAG ROUTING CORE (PREVENTS INDENTATION ACCIDENTS) ---
+def run_search_pipeline(query_text):
+    if st.session_state.tfidf_matrix is None:
+        st.error("Please upload and index documents on the left before running search queries.")
+        return
+    if not API_KEY_STRING:
+        st.error("🔒 Security Error: `GEMINI_API_KEY` is completely missing from your Streamlit Secrets vault console.")
+        return
+        
+    with st.spinner("Scanning matrix indexes and compiling response context..."):
+        query_vec = st.session_state.vectorizer.transform([query_text])
+        similarities = cosine_similarity(query_vec, st.session_state.tfidf_matrix).flatten()
+        top_indices = np.argsort(similarities)[-3:][::-1]
+        
+        context_str = ""
+        matched_sources = []
+        for idx in top_indices:
+            if similarities[idx] > 0.05:
+                context_str += f"Source: {st.session_state.sources[idx]}\nContent: {st.session_state.chunks[idx]}\n\n"
+                current_source = st.session_state.sources[idx]
+                if current_source not in matched_sources:
+                    matched_sources.append(current_source)
+                    
+        if not context_str.strip():
+            st.warning("No relevant document references matched your query parameters.")
+            context_str = "No reference text available."
+            
+        system_prompt = "You are an expert Operations and Supply Chain Knowledge Assistant.\nAnswer user questions accurately based ONLY on the operational text reference provided below.\nIf the answer cannot be confidently verified from the text, state exactly: \n'Information not found in the uploaded operational knowledge base.' Do not make up answers.\n\n--- START REFERENCE TEXT ---\n" + context_str + "\n--- END REFERENCE TEXT ---"
+        
+        try:
+            client = genai.Client(api_key=API_KEY_STRING)
+            config_setup = types.GenerateContentConfig(system_instruction=system_prompt, temperature=0.0)
+            response = client.models.generate_content(model='gemini-3.6-flash', contents=query_text, config=config_setup)
+            
+            st.markdown("### 📝 Grounded Response")
+            st.markdown(f'<div class="premium-response">{response.text}</div>', unsafe_allow_html=True)
+            
+            if "Information not found" not in response.text and matched_sources:
+                st.write("")
+                st.markdown("#### 📌 Data Source Citations")
+                for source in matched_sources:
+                    st.markdown(f'<div class="premium-citation">✔ Verified Reference: <code>{source}</code></div>', unsafe_allow_html=True)
+        except Exception as e:
+            st.error(f"Google Gemini Engine Exception: {e}")
+
 # 4. Graphical Layout Panels
 col1, col2 = st.columns(2, gap="large")
 
@@ -146,53 +191,3 @@ with col1:
                     for page_num, page in enumerate(reader.pages):
                         text = page.extract_text()
                         if text:
-                            file_text += text + "\n"
-                    
-                    lower_text = file_text.lower()
-                    cleaned_text = "".join([c if c.isalnum() or c.isspace() else " " for c in lower_text])
-                    
-                    filtered_words = []
-                    for word in cleaned_text.split():
-                        if word not in STOP_WORDS and len(word) > 2 and not word.isdigit():
-                            filtered_words.append(word)
-                    
-                    word_counts = collections.Counter(filtered_words)
-                    extracted_freq_dict[uploaded_file.name] = word_counts.most_common(12)
-                    
-                    chunk_size = 500
-                    words = file_text.split()
-                    chunks = [" ".join(words[i:i+chunk_size]) for i in range(0, len(words), chunk_size)]
-                    
-                    for idx, chunk in enumerate(chunks):
-                        if chunk.strip():
-                            all_chunks.append(chunk)
-                            all_sources.append(f"{uploaded_file.name} (Segment {idx+1})")
-                except Exception as e:
-                    st.error(f"Error parsing {uploaded_file.name}: {e}")
-            
-            if all_chunks:
-                st.session_state.chunks = all_chunks
-                st.session_state.sources = all_sources
-                st.session_state.keyword_frequencies = extracted_freq_dict
-                
-                vectorizer = TfidfVectorizer(stop_words='english')
-                st.session_state.tfidf_matrix = vectorizer.fit_transform(all_chunks)
-                st.session_state.vectorizer = vectorizer
-                
-                st.success(f"Successfully processed {len(uploaded_files)} document(s) into {len(all_chunks)} searchable knowledge nodes! You can now query on the right panel.")
-            else:
-                st.warning("No readable text could be retrieved from the uploaded documents.")
-
-with col2:
-    st.header("💬 Query Knowledge Base")
-    user_query = st.text_input("Ask an operational or policy question:", placeholder="e.g., What is the maximum time cap for container clearance?")
-    submit_query = st.button("🔍 Search Engine")
-    
-    # 💎 FLATTENED FIXED TERNARY SYSTEM TELEMETRY DISPLAY MODULE
-    status_msg = f"📂 Deployed Memory Status: {len(st.session_state.chunks if st.session_state.chunks else [])} text chunks actively mapped into local matrix." if st.session_state.tfidf_matrix is not None else "📥 Deployed Memory Status: Awaiting PDF ingestion pipeline inputs from left column panel."
-    if st.session_state.tfidf_matrix is not None:
-        st.info(status_msg)
-    else:
-        st.warning(status_msg)
-
-    if submit_query and user_query:
