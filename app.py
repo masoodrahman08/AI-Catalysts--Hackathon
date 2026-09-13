@@ -114,7 +114,7 @@ if st.session_state.keyword_frequencies:
 st.sidebar.markdown("---")
 st.sidebar.caption("🔒 Corporate guardrails are live. Anti-hallucination tracking activated.")
 
-# --- DECOUPLED FLATTENED PARSING FUNCTION ---
+# --- DECOUPLED FLATTENED PARSING ENGINE (ELIMINATED NESTED HOOK FAULTS) ---
 def parse_and_chunk_pdfs(uploaded_files):
     all_chunks = []
     all_sources = []
@@ -130,9 +130,12 @@ def parse_and_chunk_pdfs(uploaded_files):
         try:
             reader = PdfReader(uploaded_file)
             file_text = ""
+            
+            # Safe linear flattening without dangling try blocks
             for page in reader.pages:
-                page_text = page.extract_text() or ""
-                file_text += page_text + "\n"
+                extracted_text = page.extract_text()
+                if extracted_text:
+                    file_text += extracted_text + "\n"
             
             lower_text = file_text.lower()
             cleaned_text = "".join([c if c.isalnum() or c.isspace() else " " for c in lower_text])
@@ -153,12 +156,13 @@ def parse_and_chunk_pdfs(uploaded_files):
                 if chunk.strip():
                     all_chunks.append(chunk)
                     all_sources.append(f"{uploaded_file.name} (Segment {idx+1})")
-        except Exception as e:
-            st.error(f"Error parsing {uploaded_file.name}: {e}")
+                    
+        except Exception as file_error:
+            st.error(f"Error parsing file execution branch {uploaded_file.name}: {file_error}")
             
     return all_chunks, all_sources, extracted_freq_dict
 
-# --- DECOUPLED FLATTENED RAG ROUTING CORE (FULLY CLOSED TRY-EXCEPT LOGIC) ---
+# --- DECOUPLED FLATTENED RAG ROUTING CORE ---
 def run_search_pipeline(user_query):
     if st.session_state.tfidf_matrix is None or len(st.session_state.chunks) == 0:
         st.error("Please upload and index documents on the left before running search queries.")
@@ -190,6 +194,3 @@ def run_search_pipeline(user_query):
         
         try:
             client = genai.Client(api_key=GEMINI_KEY)
-            config_setup = types.GenerateContentConfig(system_instruction=system_prompt, temperature=0.0)
-            response = client.models.generate_content(model='gemini-3.6-flash', contents=user_query, config=config_setup)
-            
