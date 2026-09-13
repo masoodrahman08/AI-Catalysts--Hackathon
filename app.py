@@ -1,3 +1,4 @@
+
 import streamlit as st
 import os
 import collections
@@ -7,12 +8,6 @@ from pypdf import PdfReader
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
-
-# 🔑 SECURE METADATA ENVIRONMENTAL ROUTING
-if "GEMINI_API_KEY" in st.secrets:
-    API_KEY_STRING = st.secrets["GEMINI_API_KEY"]
-else:
-    API_KEY_STRING = ""
 
 # 1. Page Configuration & Setup
 st.set_page_config(
@@ -191,15 +186,20 @@ with col2:
                 system_prompt = "You are an expert Operations and Supply Chain Knowledge Assistant.\nAnswer user questions accurately based ONLY on the operational text reference provided below.\nIf the answer cannot be confidently verified from the text, state exactly: \n'Information not found in the uploaded operational knowledge base.' Do not make up answers.\n\n--- START REFERENCE TEXT ---\n" + context_str + "\n--- END REFERENCE TEXT ---"
                 
                 try:
-                    if not API_KEY_STRING:
-                        st.error("🔒 Security Error: `GEMINI_API_KEY` is completely missing from your Streamlit Secrets vault console.")
-                    else:
-                        client = genai.Client(api_key=API_KEY_STRING)
-                        config_setup = types.GenerateContentConfig(system_instruction=system_prompt, temperature=0.0)
-                        response = client.models.generate_content(model='gemini-3.6-flash', contents=user_query, config=config_setup)
-                        
-                        st.markdown("### 📝 Grounded Response")
-                        st.markdown(f'<div class="premium-response">{response.text}</div>', unsafe_allow_html=True)
-                        
-                        if "Information not found" not in response.text and matched_sources:
-                            st.write("")
+                    # FETCHING NEW API KEY DYNAMICALLY FROM STREAMLIT HIDDEN METADATA VAULT
+                    client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
+                    
+                    config_setup = types.GenerateContentConfig(system_instruction=system_prompt, temperature=0.0)
+                    response = client.models.generate_content(model='gemini-3.6-flash', contents=user_query, config=config_setup)
+                    
+                    answer = response.text
+                    st.markdown("### Answer")
+                    st.write(answer)
+                    
+                    if "Information not found" not in answer and matched_sources:
+                        st.markdown("#### Grounded Reference Citations")
+                        for source in matched_sources:
+                            st.caption(f"📌 {source}")
+                            
+                except Exception as e:
+                    st.error(f"Google Gemini Engine Exception: {e}")
