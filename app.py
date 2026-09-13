@@ -162,7 +162,7 @@ with col1:
                     
                     for idx, chunk in enumerate(chunks):
                         if chunk.strip():
-                            # FIXED: Removed the accidental duplicate all_chunks.append line
+                            all_chunks.append(chunk)
                             all_chunks.append(chunk)
                             all_sources.append(f"{uploaded_file.name} (Segment {idx+1})")
                 except Exception as e:
@@ -196,3 +196,5 @@ with col2:
                 similarities = cosine_similarity(query_vec, st.session_state.tfidf_matrix).flatten()
                 
                 top_indices = np.argsort(similarities)[-3:][::-1]
+                
+                context_str = ""
