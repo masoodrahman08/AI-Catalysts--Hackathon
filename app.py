@@ -84,11 +84,11 @@ st.markdown("""
     </div>
 """, unsafe_allow_html=True)
 
-# 2. Initialize Session State Variables Permanently
+# 2. Initialize Session State Variables As Clean Iterables (FIXED CONFLATION)
 if "chunks" not in st.session_state:
-    st.session_state.chunks = None
+    st.session_state.chunks = []
 if "sources" not in st.session_state:
-    st.session_state.sources = None
+    st.session_state.sources = []
 if "vectorizer" not in st.session_state:
     st.session_state.vectorizer = None
 if "tfidf_matrix" not in st.session_state:
@@ -114,7 +114,7 @@ if st.session_state.keyword_frequencies:
 st.sidebar.markdown("---")
 st.sidebar.caption("🔒 Corporate guardrails are live. Anti-hallucination tracking activated.")
 
-# --- DECOUPLED FLATTENED PARSING NODE (FIXES TRY SYNTAX ACCIDENTS) ---
+# --- DECOUPLED FLATTENED PARSING NODE ---
 def extract_pdf_content(uploaded_file, stop_words):
     try:
         reader = PdfReader(uploaded_file)
@@ -188,7 +188,7 @@ def run_search_pipeline(query_text):
         except Exception as e:
             st.error(f"Google Gemini Engine Exception: {e}")
 
-# 4. Graphical Layout Panels
+# 4. Graphical Layout Panels (RESTORED SYMMETRY COLUMNS)
 col1, col2 = st.columns(2, gap="large")
 
 with col1:
