@@ -16,12 +16,12 @@ else:
 
 # 1. Page Configuration & Setup
 st.set_page_config(
-    page_title="AI Operations Knowledge Assistant",
+    page_title="AI Operations & Supply Chain Knowledge Assistant",
     page_icon="🤖",
     layout="wide"
 )
 
-# --- LUXURY BRAND CSS INJECTION MATRIX (FORTUNE-500 ARCHITECTURE) ---
+# --- PREMIUM LUXURY BRAND CSS INJECTION MATRIX ---
 st.markdown("""
     <style>
     /* Global Page Structure and Typography */
@@ -114,8 +114,53 @@ if st.session_state.keyword_frequencies:
 st.sidebar.markdown("---")
 st.sidebar.caption("🔒 Corporate guardrails are live. Anti-hallucination tracking activated.")
 
-# --- DECOUPLED FLATTENED RAG ROUTING CORE (PREVENTS INDENTATION ACCIDENTS) ---
-def run_search_pipeline(query_text):
+# --- DECOUPLED FLATTENED PARSING FUNCTION (REMOVED NESTED CONDITIONALS) ---
+def parse_and_chunk_pdfs(uploaded_files):
+    all_chunks = []
+    all_sources = []
+    extracted_freq_dict = {}
+    
+    STOP_WORDS = set([
+        "the", "and", "a", "of", "to", "in", "is", "for", "that", "by", "on", "with", 
+        "as", "an", "at", "be", "this", "from", "it", "are", "or", "was", "will", "shall",
+        "must", "should", "under", "within", "strict", "exact", "any", "all", "each", "based"
+    ])
+    
+    for uploaded_file in uploaded_files:
+        try:
+            reader = PdfReader(uploaded_file)
+            file_text = ""
+            for page in reader.pages:
+                # Flat concatenation handling empty string conversions securely
+                page_text = page.extract_text() or ""
+                file_text += page_text + "\n"
+            
+            lower_text = file_text.lower()
+            cleaned_text = "".join([c if c.isalnum() or c.isspace() else " " for c in lower_text])
+            
+            filtered_words = []
+            for word in cleaned_text.split():
+                if word not in STOP_WORDS and len(word) > 2 and not word.isdigit():
+                    filtered_words.append(word)
+            
+            word_counts = collections.Counter(filtered_words)
+            extracted_freq_dict[uploaded_file.name] = word_counts.most_common(12)
+            
+            chunk_size = 500
+            words = file_text.split()
+            chunks = [" ".join(words[i:i+chunk_size]) for i in range(0, len(words), chunk_size)]
+            
+            for idx, chunk in enumerate(chunks):
+                if chunk.strip():
+                    all_chunks.append(chunk)
+                    all_sources.append(f"{uploaded_file.name} (Segment {idx+1})")
+        except Exception as e:
+            st.error(f"Error parsing {uploaded_file.name}: {e}")
+            
+    return all_chunks, all_sources, extracted_freq_dict
+
+# --- DECOUPLED FLATTENED RAG ROUTING CORE ---
+def run_search_pipeline(user_query):
     if st.session_state.tfidf_matrix is None or len(st.session_state.chunks) == 0:
         st.error("Please upload and index documents on the left before running search queries.")
         return
@@ -123,8 +168,8 @@ def run_search_pipeline(query_text):
         st.error("🔒 Security Error: `GEMINI_API_KEY` is completely missing from your Streamlit Secrets vault console.")
         return
         
-    with st.spinner("Scanning indexes and compiling grounded response..."):
-        query_vec = st.session_state.vectorizer.transform([query_text])
+    with st.spinner("Scanning matrix indexes and compiling response context..."):
+        query_vec = st.session_state.vectorizer.transform([user_query])
         similarities = cosine_similarity(query_vec, st.session_state.tfidf_matrix).flatten()
         
         top_indices = np.argsort(similarities)[-3:][::-1]
@@ -147,49 +192,3 @@ def run_search_pipeline(query_text):
         try:
             client = genai.Client(api_key=GEMINI_KEY)
             config_setup = types.GenerateContentConfig(system_instruction=system_prompt, temperature=0.0)
-            response = client.models.generate_content(model='gemini-3.6-flash', contents=query_text, config=config_setup)
-            
-            st.markdown("### 📝 Grounded Response")
-            st.markdown(f'<div class="premium-response">{response.text}</div>', unsafe_allow_html=True)
-            
-            if "Information not found" not in response.text and matched_sources:
-                st.write("")
-                st.markdown("#### 📌 Data Source Citations")
-                for source in matched_sources:
-                    st.markdown(f'<div class="premium-citation">✔ Verified Reference: <code>{source}</code></div>', unsafe_allow_html=True)
-                    
-        except Exception as e:
-            st.error(f"Google Gemini Engine Exception: {e}")
-
-# 4. Graphical Layout Panels
-col1, col2 = st.columns(2, gap="large")
-
-with col1:
-    st.header("📄 Upload Knowledge Documents")
-    uploaded_files = st.file_uploader(
-        "Upload standard operational PDFs:",
-        type=["pdf"],
-        accept_multiple_files=True
-    )
-    
-    process_btn = st.button("⚙️ Process & Index Documents")
-
-    if process_btn and uploaded_files:
-        all_chunks = []
-        all_sources = []
-        extracted_freq_dict = {}
-        
-        STOP_WORDS = set([
-            "the", "and", "a", "of", "to", "in", "is", "for", "that", "by", "on", "with", 
-            "as", "an", "at", "be", "this", "from", "it", "are", "or", "was", "will", "shall",
-            "must", "should", "under", "within", "strict", "exact", "any", "all", "each", "based"
-        ])
-        
-        with st.spinner("Parsing operational files & analyzing key focus terms..."):
-            for uploaded_file in uploaded_files:
-                try:
-                    reader = PdfReader(uploaded_file)
-                    file_text = ""
-                    for page in reader.pages:
-                        text = page.extract_text()
-                        if text:
