@@ -8,7 +8,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
 
-# 🔑 SECURE METADATA ENVIRONMENTAL ROUTING
+# 🔑 SECURE METADATA API ROUTING
 if "GEMINI_API_KEY" in st.secrets:
     API_KEY_STRING = st.secrets["GEMINI_API_KEY"]
 else:
@@ -171,7 +171,6 @@ with col1:
                     st.error(f"Error parsing {uploaded_file.name}: {e}")
             
             if all_chunks:
-                # 💾 CRITICAL FIX: Storing directly into permanent session state arrays
                 st.session_state.chunks = all_chunks
                 st.session_state.sources = all_sources
                 st.session_state.keyword_frequencies = extracted_freq_dict
@@ -190,11 +189,13 @@ with col2:
     user_query = st.text_input("Ask an operational or policy question:", placeholder="e.g., What is the maximum time cap for container clearance?")
     submit_query = st.button("🔍 Search Engine")
     
-    # 🕵️‍♂️ UI STATUS COMPONENT (Displays if data is loaded and ready for search)
-    if st.session_state.tfidf_matrix is not None:
-        st.info(f"📂 System status: {len(st.session_state.chunks)} matrix context nodes locked in memory.")
-    else:
-        st.warning("📥 System status: Waiting for operational manuals to be uploaded on the left.")
-
     if submit_query and user_query:
         if st.session_state.tfidf_matrix is None:
+            st.error("Please upload and index documents on the left before running search queries.")
+        else:
+            with st.spinner("Scanning indexes and compiling grounded response..."):
+                query_vec = st.session_state.vectorizer.transform([user_query])
+                similarities = cosine_similarity(query_vec, st.session_state.tfidf_matrix).flatten()
+                
+                top_indices = np.argsort(similarities)[-3:][::-1]
+                
