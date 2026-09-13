@@ -11,7 +11,7 @@ import numpy as np
 # 🔑 SECURE METADATA API ROUTING
 GEMINI_KEY = st.secrets["GEMINI_API_KEY"]
 
-# 1. Page Configuration & Aesthetic Baseline
+# 1. Page Configuration & Setup
 st.set_page_config(
     page_title="AI Operations Knowledge Assistant",
     page_icon="🤖",
@@ -196,4 +196,4 @@ with col2:
                 for idx in top_indices:
                     if similarities[idx] > 0.05:
                         context_str += f"Source: {st.session_state.sources[idx]}\nContent: {st.session_state.chunks[idx]}\n\n"
-                        if st.session_state.sources[idx] not in matched_sources:
+                        # Flattened list insertion logic to eliminate nested whitespace traps
