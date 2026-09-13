@@ -32,21 +32,23 @@ st.markdown("""
         border: 1px solid #334155;
         box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
     }
-    .premium-banner h1 { color: #FFFFFF !important; font-weight: 800 !important; font-size: 28px !important; margin: 0 0 4px 0 !important; letter-spacing: -0.5px; }
-    .premium-banner p { color: #94A3B8 !important; font-size: 14px !important; margin: 0 0 16px 0 !important; font-weight: 400; }
+    .premium-banner h1 { color: #FFFFFF !important; font-weight: 800 !important; font-size: 28px !important; margin: 0 0 6px 0 !important; letter-spacing: -0.5px; text-align: center !important; }
+    .premium-banner .banner-sub { color: #94A3B8 !important; font-size: 14px !important; margin: 0 0 20px 0 !important; font-weight: 400; text-align: center !important; }
     
     /* Neon Team Badge */
     .team-badge { background: linear-gradient(90deg, #38BDF8, #818CF8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 800; letter-spacing: 0.5px; }
     
-    /* Roster Interface Modules */
-    .roster-container { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; background: rgba(30, 41, 59, 0.5); padding: 12px 16px; border-radius: 8px; border: 1px solid #334155; }
-    .roster-label { color: #E2E8F0; font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; }
+    /* Roster Two-Line Layout Container Modules */
+    .roster-box { background: rgba(30, 41, 59, 0.5); padding: 16px 20px; border-radius: 10px; border: 1px solid #334155; max-width: 800px; margin: 0 auto; }
+    .roster-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: center; }
+    .roster-row:first-child { margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid rgba(51, 65, 85, 0.5); }
+    .roster-label { color: #94A3B8; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; }
     
     /* Leader Gold Shield Badge */
-    .badge-leader { background: linear-gradient(135deg, #FEF08A 0%, #EAB308 100%); color: #451A03 !important; font-weight: 700; padding: 4px 12px; border-radius: 6px; font-size: 13px; box-shadow: 0 2px 4px rgba(234, 179, 8, 0.2); }
+    .badge-leader { background: linear-gradient(135deg, #FEF08A 0%, #EAB308 100%); color: #451A03 !important; font-weight: 700; padding: 4px 14px; border-radius: 6px; font-size: 13px; box-shadow: 0 2px 4px rgba(234, 179, 8, 0.2); }
     
     /* Member Emerald Ice Badges */
-    .badge-member { background: linear-gradient(135deg, #D1FAE5 0%, #10B981 100%); color: #064E3B !important; font-weight: 600; padding: 4px 10px; border-radius: 6px; font-size: 12px; box-shadow: 0 2px 4px rgba(16, 185, 129, 0.15); display: inline-block; }
+    .badge-member { background: linear-gradient(135deg, #D1FAE5 0%, #10B981 100%); color: #064E3B !important; font-weight: 600; padding: 4px 12px; border-radius: 6px; font-size: 12px; box-shadow: 0 2px 4px rgba(16, 185, 129, 0.15); display: inline-block; }
     
     /* Interactive Column Layout Headers */
     h2 { color: #1E3A8A !important; font-weight: 700 !important; font-size: 20px !important; border-bottom: 2px solid #E2E8F0; padding-bottom: 8px; margin-bottom: 20px; }
@@ -57,21 +59,24 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# Render Styled Obsidian Executive Header Banner
+# Render Centered Obsidian Executive Header Banner with Two-Line Roster
 st.markdown("""
     <div class="premium-banner">
         <h1>🤖 AI Operations & Supply Chain Knowledge Assistant</h1>
-        <p>Engineered by Team: <span class="team-badge">AI-Catalysts- Hackathon</span> &nbsp;|&nbsp; Powered by Gemini 3.6 Flash & Local TF-IDF</p>
-        <div class="roster-container">
-            <span class="roster-label">👑 Project Leader:</span>
-            <span class="badge-leader">Hafiz Masood Ur Rehman</span>
-            <span style="color: #475569; margin: 0 10px;">|</span>
-            <span class="roster-label">👥 Team Members:</span>
-            <span class="badge-member">Fatima Ijaz</span>
-            <span class="badge-member">Muhammad Aslam</span>
-            <span class="badge-member">Shakeel Ahmed</span>
-            <span class="badge-member">Sami Ur Rahman</span>
-            <span class="badge-member">Muhammad Haroon Jan</span>
+        <div class="banner-sub">Engineered by Team: <span class="team-badge">AI-Catalysts- Hackathon</span></div>
+        <div class="roster-box">
+            <div class="roster-row">
+                <span class="roster-label">👑 Project Leader:</span>
+                <span class="badge-leader">Hafiz Masood Ur Rehman</span>
+            </div>
+            <div class="roster-row">
+                <span class="roster-label">👥 Team Members:</span>
+                <span class="badge-member">Fatima Ijaz</span>
+                <span class="badge-member">Muhammad Aslam</span>
+                <span class="badge-member">Shakeel Ahmed</span>
+                <span class="badge-member">Sami Ur Rahman</span>
+                <span class="badge-member">Muhammad Haroon Jan</span>
+            </div>
         </div>
     </div>
 """, unsafe_allow_html=True)
@@ -181,19 +186,13 @@ with col2:
     user_query = st.text_input("Ask an operational or policy question:", placeholder="e.g., What is the maximum time cap for container clearance?")
     submit_query = st.button("🔍 Search Engine")
     
+    # Live Cache Monitor Check Indicator Module
+    if st.session_state.tfidf_matrix is not None and len(st.session_state.chunks) > 0:
+        st.info(f"📂 Deployed Memory Status: {len(st.session_state.chunks)} text nodes locked in memory.")
+    else:
+        st.warning("📥 Deployed Memory Status: Awaiting PDF Ingestion Pipeline Inputs from left panel.")
+
     if submit_query and user_query:
         if st.session_state.tfidf_matrix is None:
             st.error("Please upload and index documents on the left before running search queries.")
-        else:
-            with st.spinner("Scanning indexes and compiling grounded response..."):
-                query_vec = st.session_state.vectorizer.transform([user_query])
-                similarities = cosine_similarity(query_vec, st.session_state.tfidf_matrix).flatten()
-                
-                top_indices = np.argsort(similarities)[-3:][::-1]
-                
-                context_str = ""
-                matched_sources = []
-                for idx in top_indices:
-                    if similarities[idx] > 0.05:
-                        context_str += f"Source: {st.session_state.sources[idx]}\nContent: {st.session_state.chunks[idx]}\n\n"
-                        # Flattened list insertion logic to eliminate nested whitespace traps
+        elif not GEMINI_KEY:
