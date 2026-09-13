@@ -114,6 +114,35 @@ if st.session_state.keyword_frequencies:
 st.sidebar.markdown("---")
 st.sidebar.caption("🔒 Corporate guardrails are live. Anti-hallucination tracking activated.")
 
+# --- DECOUPLED FLATTENED PARSING NODE (FIXES TRY SYNTAX ACCIDENTS) ---
+def extract_pdf_content(uploaded_file, stop_words):
+    try:
+        reader = PdfReader(uploaded_file)
+        file_text = ""
+        for page in reader.pages:
+            page_text = page.extract_text() or ""
+            file_text += page_text + "\n"
+        
+        lower_text = file_text.lower()
+        cleaned_text = "".join([c if c.isalnum() or c.isspace() else " " for c in lower_text])
+        
+        filtered_words = []
+        for word in cleaned_text.split():
+            if word not in stop_words and len(word) > 2 and not word.isdigit():
+                filtered_words.append(word)
+        
+        word_counts = collections.Counter(filtered_words)
+        freq_list = word_counts.most_common(12)
+        
+        chunk_size = 500
+        words = file_text.split()
+        chunks = [" ".join(words[i:i+chunk_size]) for i in range(0, len(words), chunk_size)]
+        
+        return chunks, freq_list
+    except Exception as e:
+        st.error(f"Error parsing {uploaded_file.name}: {e}")
+        return [], []
+
 # --- DECOUPLED FLATTENED RAG ROUTING CORE ---
 def run_search_pipeline(query_text):
     if st.session_state.tfidf_matrix is None:
@@ -164,31 +193,3 @@ col1, col2 = st.columns(2, gap="large")
 
 with col1:
     st.header("📄 Upload Knowledge Documents")
-    uploaded_files = st.file_uploader(
-        "Upload standard operational PDFs:",
-        type=["pdf"],
-        accept_multiple_files=True
-    )
-    
-    process_btn = st.button("⚙️ Process & Index Documents")
-
-    if process_btn and uploaded_files:
-        all_chunks = []
-        all_sources = []
-        extracted_freq_dict = {}
-        
-        STOP_WORDS = set([
-            "the", "and", "a", "of", "to", "in", "is", "for", "that", "by", "on", "with", 
-            "as", "an", "at", "be", "this", "from", "it", "are", "or", "was", "will", "shall",
-            "must", "should", "under", "within", "strict", "exact", "any", "all", "each", "based"
-        ])
-        
-        with st.spinner("Parsing operational files & analyzing key focus terms..."):
-            for uploaded_file in uploaded_files:
-                try:
-                    reader = PdfReader(uploaded_file)
-                    file_text = ""
-                    for page in reader.pages:
-                        page_text = page.extract_text() or ""
-                        file_text += page_text + "\n"
-                    
